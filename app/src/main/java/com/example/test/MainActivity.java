@@ -95,17 +95,11 @@ public class MainActivity extends AppCompatActivity {
                 request.addRequestHeader("User-Agent", userAgent);
 
                 request.setDescription("下载中...");
-    
+
                 request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
 
                 request.allowScanningByMediaScanner(); request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED); request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
 
-    // 定义自定义下载目录（中文目录）
-    String directoryName = "电视直播";
-    // 设置文件保存路径
-    String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
-    request.setDestinationInExternalPublicDir(directoryName, fileName);
-    
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
                 manager.enqueue(request);
@@ -140,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // 这里填你需要打包的 H5 页面链接
-        webView.loadUrl("http://valkire.cn/");
+        webView.loadUrl("https://www.baidu.com/");
 
         //显示一些小图片（头像）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
