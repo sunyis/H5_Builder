@@ -86,23 +86,25 @@ public class MainActivity extends AppCompatActivity {
 
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
 
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                DDownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-                String cookies = CookieManager.getInstance().getCookie(url);
+// 设置下载文件的标题
+request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
 
-                request.addRequestHeader("cookie", cookies);
+// 允许媒体扫描器扫描下载的文件
+request.allowScanningByMediaScanner();
 
-                request.addRequestHeader("User-Agent", userAgent);
+// 设置通知可见性为下载完成时显示通知
+request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-                request.setDescription("下载中...");
+// 设置下载目标目录和文件名
+request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
 
-                request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+// 获取 DownloadManager 实例
+DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-                request.allowScanningByMediaScanner(); request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED); request.setDestinationInExternalPublicDir(下载, URLUtil.guessFileName(url, contentDisposition, mimetype));
-
-                DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
-                manager.enqueue(request);
+// 将下载请求加入队列
+long downloadId = manager.enqueue(request);
 
                 showMessage("下载中...");
 
