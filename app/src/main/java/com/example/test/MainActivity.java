@@ -98,14 +98,10 @@ public class MainActivity extends AppCompatActivity {
 
                 request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
 
-                request.allowScanningByMediaScanner();
-                
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        
-                request.setDestinationInExternalPublicDir("/storage/emulated/0/", URLUtil.guessFileName(url, contentDisposition, mimetype));
+                request.allowScanningByMediaScanner(); request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED); request.setDestinationInExternalPublicDir(/storage/emulated/0/, URLUtil.guessFileName(url, contentDisposition, mimetype));
 
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        
+
                 manager.enqueue(request);
 
                 showMessage("下载中...");
