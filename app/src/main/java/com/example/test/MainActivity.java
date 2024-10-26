@@ -102,12 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         
-                File downloadDir = new File("电视直播");
-                if (!downloadDir.exists()) {
-                downloadDir.mkdirs();
-}
-                request.setDestinationUri(Uri.fromFile(new File(downloadDir, URLUtil.guessFileName(url, contentDisposition, mimetype))));      
-
+                request.setDestinationInExternalPublicDir("下载", URLUtil.guessFileName(url, contentDisposition, mimetype));
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
                 manager.enqueue(request);
