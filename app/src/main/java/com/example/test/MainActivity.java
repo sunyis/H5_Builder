@@ -102,9 +102,9 @@ public class MainActivity extends AppCompatActivity {
                 
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         
-                File downloadDir = new File(Environment.getExternalStorageDirectory(), "电视直播");
+                File downloadDir = new File(externalStorageDir, "电视直播");
                 if (!downloadDir.exists()) {
-                downloadDir.mkdirs(); 
+                downloadDir.mkdirs();
                 }
 
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
