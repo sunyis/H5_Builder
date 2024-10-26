@@ -23,6 +23,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
@@ -101,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
                 
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         
-                request.setDestinationInExternalPublicDir("/电视直播", URLUtil.guessFileName(url, contentDisposition, mimetype));
+                request.setDestinationInExternalPublicDir("/storage/emulated/0/", URLUtil.guessFileName(url, contentDisposition, mimetype));
 
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
+        
                 manager.enqueue(request);
 
                 showMessage("下载中...");
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // 这里填你需要打包的 H5 页面链接
-        webView.loadUrl("http://valkire.cn/");
+        webView.loadUrl("https://www.baidu.com/");
 
         //显示一些小图片（头像）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
