@@ -86,10 +86,13 @@ public class MainActivity extends AppCompatActivity {
 
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
 
-                DDownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
 // 设置下载文件的标题
 request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+
+// 设置下载描述
+request.setDescription("下载中...");
 
 // 允许媒体扫描器扫描下载的文件
 request.allowScanningByMediaScanner();
@@ -97,8 +100,25 @@ request.allowScanningByMediaScanner();
 // 设置通知可见性为下载完成时显示通知
 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
+// 获取自定义下载目录
+fun getCustomDownloadDirectory(context: Context): File {
+    // 指定自定义下载目录
+    val customDirName = "下载"
+    val customDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), customDirName)
+    
+    // 创建目录（如果不存在）
+    if (!customDir.exists()) {
+        customDir.mkdirs()
+    }
+    
+    return customDir
+}
+
+// 使用自定义下载目录
+val downloadDirectory = getCustomDownloadDirectory(context)
+
 // 设置下载目标目录和文件名
-request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
+request.setDestinationInExternalPublicDir(downloadDirectory.name, URLUtil.guessFileName(url, contentDisposition, mimetype));
 
 // 获取 DownloadManager 实例
 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
