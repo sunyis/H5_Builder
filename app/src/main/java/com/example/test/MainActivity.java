@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         
-                File downloadDir = new File("/", "电视直播");
+                File downloadDir = new File("电视直播");
                 if (!downloadDir.exists()) {
                 downloadDir.mkdirs();
 }
