@@ -1,4 +1,3 @@
-
 package com.example.test;
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
@@ -85,46 +84,51 @@ public class MainActivity extends AppCompatActivity {
         // code from https://github.com/madhan98/Android-webview-upload-download/blob/master/app/src/main/java/com/my/newproject/MainActivity.java by Madhan
         webView.setDownloadListener(new DownloadListener() {
 
-            public void startDownload(Context context, String url, String userAgent, String contentDisposition, String mimetype) {
-    showMessage("下载中...");
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
 
-    // Create the download request
-    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+
+                String cookies = CookieManager.getInstance().getCookie(url);
+
+                request.addRequestHeader("cookie", cookies);
+
+                request.addRequestHeader("User-Agent", userAgent);
+
+                request.setDescription("下载中...");
     
-    // 获取cookie并添加到请求头
-    String cookies = CookieManager.getInstance().getCookie(url);
-    request.addRequestHeader("cookie", cookies);
-    request.addRequestHeader("User-Agent", userAgent);
-    request.setDescription("下载中...");
-    request.allowScanningByMediaScanner();
-    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+
+                request.allowScanningByMediaScanner(); request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED); request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
 
     // 定义自定义下载目录（中文目录）
     String directoryName = "电视直播";
     // 设置文件保存路径
     String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
     request.setDestinationInExternalPublicDir(directoryName, fileName);
-
-    // 获取 DownloadManager 服务
-    DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-    long downloadId = manager.enqueue(request);
     
-    // 下载完成的通知
-    BroadcastReceiver onComplete = new BroadcastReceiver() {
-        public void onReceive(Context ctxt, Intent intent) {
-            showMessage("下载完成");
-            unregisterReceiver(this);
-        }
-    };
+                DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-    context.registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-}
+                manager.enqueue(request);
 
-// 方法用于显示消息（可以自定义）
-private void showMessage(String message) {
-    // 这里可以显示Toast、Snackbar或者任何其他UI元素
-    Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-}
+                showMessage("下载中...");
+
+                //Notif if success
+
+                BroadcastReceiver onComplete = new BroadcastReceiver() {
+
+                    public void onReceive(Context ctxt, Intent intent) {
+
+                        showMessage("下载完成");
+
+                        unregisterReceiver(this);
+
+                    }};
+
+                registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+            }
+
+        });
 
         //该方法解决的问题是打开浏览器不调用系统浏览器，直接用 webView 打开
         webView.setWebViewClient(new WebViewClient() {
