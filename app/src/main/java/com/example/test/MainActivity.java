@@ -102,11 +102,12 @@ public class MainActivity extends AppCompatActivity {
                 
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         
-                File baseDir = Environment.getExternalStorageDirectory();
-File downloadDir = new File(baseDir, "电视直播"); 
-
-if (!downloadDir.exists()) {
-    downloadDir.mkdirs();
+StringBuilder stringBuilder = new StringBuilder();
+stringBuilder.append(SDCARD_PATH);
+stringBuilder.append("/电视直播");
+File htdocsDir = new File(stringBuilder.toString());
+if (!htdocsDir.exists()) {
+    htdocsDir.mkdirs();
 }
 request.setDestinationUri(Uri.fromFile(new File(downloadDir, URLUtil.guessFileName(url, contentDisposition, mimetype))));
 
