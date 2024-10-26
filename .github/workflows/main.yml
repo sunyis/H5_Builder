@@ -29,4 +29,5 @@ jobs:
         with:
           name: my-build-apk
           path: ./**/*.apk
-
+        env:
+        GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }} 
