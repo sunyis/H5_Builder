@@ -82,58 +82,51 @@ public class MainActivity extends AppCompatActivity {
 
         // wevView监听 H5 页面的下载事件
         // code from https://github.com/madhan98/Android-webview-upload-download/blob/master/app/src/main/java/com/my/newproject/MainActivity.java by Madhan
-        webView.setDownloadListener(new DownloadListener() {
+webView.setDownloadListener(new DownloadListener() {
 
-            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+    public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
 
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        // Define SDCARD_PATH and downloadDir
+        final String SDCARD_PATH = Environment.getExternalStorageDirectory().getPath(); // or any other path you want to use
+        File downloadDir = new File(SDCARD_PATH + "/电视直播");
+        if (!downloadDir.exists()) {
+            downloadDir.mkdirs();
+        }
 
-                String cookies = CookieManager.getInstance().getCookie(url);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-                request.addRequestHeader("cookie", cookies);
+        String cookies = CookieManager.getInstance().getCookie(url);
+        if (cookies != null) {
+            request.addRequestHeader("cookie", cookies);
+        }
 
-                request.addRequestHeader("User-Agent", userAgent);
+        request.addRequestHeader("User-Agent", userAgent);
+        request.setDescription("下载中...");
+        request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+        request.allowScanningByMediaScanner();
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-                request.setDescription("下载中...");
+        // Set the destination URI for the download
+        request.setDestinationUri(Uri.fromFile(new File(downloadDir, URLUtil.guessFileName(url, contentDisposition, mimetype))));
 
-                request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+        DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        long downloadId = manager.enqueue(request);
 
-                request.allowScanningByMediaScanner();
-                
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        
-StringBuilder stringBuilder = new StringBuilder();
-stringBuilder.append(SDCARD_PATH);
-stringBuilder.append("/电视直播");
-File htdocsDir = new File(stringBuilder.toString());
-if (!htdocsDir.exists()) {
-    htdocsDir.mkdirs();
-}
-request.setDestinationUri(Uri.fromFile(new File(downloadDir, URLUtil.guessFileName(url, contentDisposition, mimetype))));
+        showMessage("下载中...");
 
-                DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-
-                manager.enqueue(request);
-
-                showMessage("下载中...");
-
-                //Notif if success
-
-                BroadcastReceiver onComplete = new BroadcastReceiver() {
-
-                    public void onReceive(Context ctxt, Intent intent) {
-
-                        showMessage("下载完成");
-
-                        unregisterReceiver(this);
-
-                    }};
-
-                registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
+        // Register a broadcast receiver to listen for download completion
+        BroadcastReceiver onComplete = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context ctxt, Intent intent) {
+                if (intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) == downloadId) {
+                    showMessage("下载完成");
+                    unregisterReceiver(this);
+                }
             }
-
-        });
+        };
+        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+    }
+});
 
         //该方法解决的问题是打开浏览器不调用系统浏览器，直接用 webView 打开
         webView.setWebViewClient(new WebViewClient() {
