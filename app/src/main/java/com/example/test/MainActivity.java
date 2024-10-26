@@ -1,5 +1,5 @@
-package com.example.test;
 
+package com.example.test;
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
@@ -10,12 +10,15 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+//import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.KeyEvent;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.URLUtil;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -45,10 +48,11 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.web_view);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setWebViewClient(new WebViewClient());
-        // code from https://blog.csdn.net/qq_32188191/article/details/65676070 by 欢子-3824
+        // code from https://blog.csdn.net/qq_21138819/article/details/56676007 by 欢子-3824
         webView.setWebChromeClient(new WebChromeClient() {
             // Andorid 4.1----4.4
             public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType, String capture) {
+
                 mFilePathCallback = uploadFile;
                 handle(uploadFile);
             }
@@ -64,46 +68,65 @@ public class MainActivity extends AppCompatActivity {
             }
 
             private void handle(ValueCallback<Uri> uploadFile) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                Intent intent = new Intent(Intent.ACTION_PICK);
                 // 设置允许上传的文件类型
                 intent.setType("*/*");
                 startActivityForResult(intent, PICK_REQUEST);
             }
 
             private void handleup(ValueCallback<Uri[]> uploadFile) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("*/*");
                 startActivityForResult(intent, PICK_REQUEST);
             }
         });
 
         // wevView监听 H5 页面的下载事件
+        // code from https://github.com/madhan98/Android-webview-upload-download/blob/master/app/src/main/java/com/my/newproject/MainActivity.java by Madhan
         webView.setDownloadListener(new DownloadListener() {
-            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                String cookies = CookieManager.getInstance().getCookie(url);
-                request.addRequestHeader("cookie", cookies);
-                request.addRequestHeader("User-Agent", userAgent);
-                request.setDescription("下载中...");
-                request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
-                request.setDestinationInExternalPublicDir("电视直播", URLUtil.guessFileName(url, contentDisposition, mimetype)); // 设置下载路径为电视直播的中文目录
-                request.allowScanningByMediaScanner();
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                manager.downloadUrl(url);
-                showMessage("下载中...");
-                //Notif success
-                BroadcastReceiver onComplete = new BroadcastReceiver() {
-                    public void onReceive(Context ctxt, Intent intent) {
-                        showMessage("下载完成");
-                        unregisterReceiver(this);
-                    }
-                };
-                registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-            }
-        });
 
-        //该方法解决了一个问题，就是打开浏览器调用系统浏览器，不直接用 webView 打开
+            public void startDownload(Context context, String url, String userAgent, String contentDisposition, String mimetype) {
+    showMessage("下载中...");
+
+    // Create the download request
+    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+    
+    // 获取cookie并添加到请求头
+    String cookies = CookieManager.getInstance().getCookie(url);
+    request.addRequestHeader("cookie", cookies);
+    request.addRequestHeader("User-Agent", userAgent);
+    request.setDescription("下载中...");
+    request.allowScanningByMediaScanner();
+    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+    // 定义自定义下载目录（中文目录）
+    String directoryName = "电视直播";
+    // 设置文件保存路径
+    String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
+    request.setDestinationInExternalPublicDir(directoryName, fileName);
+
+    // 获取 DownloadManager 服务
+    DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+    long downloadId = manager.enqueue(request);
+    
+    // 下载完成的通知
+    BroadcastReceiver onComplete = new BroadcastReceiver() {
+        public void onReceive(Context ctxt, Intent intent) {
+            showMessage("下载完成");
+            unregisterReceiver(this);
+        }
+    };
+
+    context.registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+}
+
+// 方法用于显示消息（可以自定义）
+private void showMessage(String message) {
+    // 这里可以显示Toast、Snackbar或者任何其他UI元素
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+}
+
+        //该方法解决的问题是打开浏览器不调用系统浏览器，直接用 webView 打开
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -111,34 +134,66 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        // 这里填你需要打包的H5链接页面
-        webView.loadUrl("https://www.baidu.com");
-        //显示一些小图片
+
+        // 这里填你需要打包的 H5 页面链接
+        webView.loadUrl("http://valkire.cn/");
+
+        //显示一些小图片（头像）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
-        // 允许使用 localStorage sessiKey
-        // webView.getSettings().setDomStorageEnabled(true); KeyEvent.KEYCODE_BACK) && webView.canGoBack()){ webView.goBack(); return true; } return super.onKeyDown(keyCode, event); }
+        // 允许使用 localStorage sessionStorage
+        webView.getSettings().setDomStorageEnabled(true);
+        // 是否支持 html 的 meta 标签
+        webView.getSettings().setUseWideViewPort(true);
+        webView.getSettings().setAllowFileAccess(true);
+        webView.getSettings().getAllowUniversalAccessFromFileURLs();
+        webView.getSettings().getAllowFileAccessFromFileURLs();
     }
+
+    //设置回退页面
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) {
+            webView.goBack();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Deprecated
+    public void showMessage(String _s) {
+        Toast.makeText(getApplicationContext(), _s, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        webView.destroy();
+        webView = null;
+    }
+
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == PICK_REQUEST) {
             if (null != data) {
-                handleCallback(data.getData());
+                Uri uri = data.getData();
+                handleCallback(uri);
             } else {
-                // 取消了照片的选择取消了调用
+                // 取消了照片选取的时候调用
                 handleCallback(null);
             }
         } else {
-            // 取消了照片的选择取消了调用
+            // 取消了照片选取的时候调用
             handleCallback(null);
         }
     }
 
     /**
      * 处理WebView的回调
-     * @param uri 回调的Uri对象
+     *
+     * @param uri
      */
     private void handleCallback(Uri uri) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -155,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 if (uri != null) {
                     String url = getFilePathFromContentUri(uri, getContentResolver());
                     Uri u = Uri.fromFile(new File(url));
+
                     mFilePathCallback.onReceiveValue(u);
                 } else {
                     mFilePathCallback.onReceiveValue(null);
@@ -167,11 +223,17 @@ public class MainActivity extends AppCompatActivity {
     public static String getFilePathFromContentUri(Uri selectedVideoUri, ContentResolver contentResolver) {
         String filePath;
         String[] filePathColumn = {MediaStore.MediaColumns.DATA};
+
         Cursor cursor = contentResolver.query(selectedVideoUri, filePathColumn, null, null, null);
+//      也可用下面的方法拿到cursor
+//      Cursor cursor = this.context.managedQuery(selectedVideoUri, filePathColumn, null, null, null);
+
         cursor.moveToFirst();
+
         int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
         filePath = cursor.getString(columnIndex);
         cursor.close();
         return filePath;
     }
+
 }
